@@ -7,24 +7,29 @@ const path = require('path');
 const app = express();
 const PORT = 5001;
 
+// Set up multer for file storage in the "../client/public/images" folder
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, 'images/'); // Ensure this folder exists
+    cb(null, path.join(__dirname, '../client/public/images')); // Path to images folder in client/public
   },
   filename: function(req, file, cb) {
     const timestamp = Date.now(); // Get the current timestamp
     const formattedTitle = req.body.title.toLowerCase().replace(/\s+/g, '-'); // Format title for filename
     const ext = path.extname(file.originalname);
     cb(null, `${formattedTitle}-${timestamp}${ext}`); // Create unique filename
-    //cb(null, file.originalname); // Store the original file name
   }
 });
 
 const upload = multer({ storage: storage });
 
-app.use('/images', express.static(path.join(__dirname, 'images')));
+// Serve static files from the "images" directory in client/public
+app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
-// Define API endpoint to add a new recipe
+// Middleware to parse JSON requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Define the API endpoint to add a new recipe
 app.post('/api/recipes', upload.single('image'), async (req, res) => {
   const { title, description } = req.body;
 
@@ -32,7 +37,7 @@ app.post('/api/recipes', upload.single('image'), async (req, res) => {
     const newRecipe = new Recipe({
       title,
       description,
-      image: req.file.path // Save the image path
+      image: `/images/${req.file.filename}` // Save the relative path for frontend access
     });
     
     await newRecipe.save();
@@ -43,9 +48,11 @@ app.post('/api/recipes', upload.single('image'), async (req, res) => {
   }
 });
 
-
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/spoonfeed')
+mongoose.connect('mongodb://localhost:27017/spoonfeed', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("Connected to MongoDB"))
   .catch(error => console.error("Could not connect to MongoDB:", error));
 
@@ -54,7 +61,7 @@ app.get('/', (req, res) => {
   res.send("Welcome to the SpoonFeed API");
 });
 
-// Define API endpoint to retrieve recipes
+// Define the API endpoint to retrieve recipes
 app.get('/api/recipes', async (req, res) => {
   try {
     const recipes = await Recipe.find({});
@@ -70,9 +77,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-
-
-
+// Optional utility function to clear all recipes from the database (for testing)
 async function clearAllRecipes() {
   try {
     const result = await Recipe.deleteMany({});
@@ -81,5 +86,5 @@ async function clearAllRecipes() {
     console.error("Error deleting recipes:", err);
   }
 }
-
-//clearAllRecipes();
+// Uncomment the line below to clear recipes (use only for testing!)
+// clearAllRecipes();
