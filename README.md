@@ -9,4 +9,4 @@ node server.js <br />
 to run frontend: <br />
 cd client <br />
 cd src <br />
-npm run <br />
+npm start <br />
