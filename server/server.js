@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const User = require('./user'); // User model
+const path = require('path');
 const Recipe = require('./recipe'); // Recipe model
+const User = require('./user'); // User model
 
 const app = express();
 const PORT = 5001;
@@ -12,24 +13,81 @@ const JWT_SECRET = 'your_jwt_secret_key_here'; // Replace with a secure key
 
 // Middleware
 app.use(express.json()); // Parses incoming JSON requests
-app.use('/uploads', express.static('uploads')); // Serves uploaded images
+app.use(express.urlencoded({ extended: true }));
 
-// Database Connection
+// Multer Configuration for Image Uploads (unchanged from server (2).js)
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../client/public/images');
+    console.log('Resolved Path:', uploadPath); // Log the resolved directory path
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const timestamp = Date.now();
+    const formattedTitle = req.body.title
+      ? req.body.title.toLowerCase().replace(/\s+/g, '-')
+      : 'untitled';
+    const ext = path.extname(file.originalname);
+    cb(null, `${formattedTitle}-${timestamp}${ext}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Serve static files from the "images" directory in client/public
+app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
+
+// Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/spoonfeed', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch(error => console.error('Could not connect to MongoDB:', error));
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(error => console.error("Could not connect to MongoDB:", error));
 
-// Configure Multer for Image Uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+// Root route for the API
+app.get('/', (req, res) => {
+  res.send("Welcome to the SpoonFeed API");
 });
-const upload = multer({ storage });
 
-// Routes
+// Add a New Recipe
+app.post('/api/recipes', upload.single('image'), async (req, res) => {
+  console.log('Uploaded File:', req.file); // Log the uploaded file details
+  console.log('Request Body:', req.body); // Log the request body for debugging
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'File upload failed' });
+  }
+
+  const { title, description } = req.body;
+
+  try {
+    const newRecipe = new Recipe({
+      title,
+      description,
+      image: `/images/${req.file.filename}` // Save relative path for frontend access
+    });
+
+    await newRecipe.save();
+    res.status(201).json(newRecipe);
+  } catch (error) {
+    console.error('Error adding recipe:', error);
+    res.status(500).send('Error adding recipe');
+  }
+});
+
+// Fetch All Recipes
+app.get('/api/recipes', async (req, res) => {
+  try {
+    const recipes = await Recipe.find({});
+    res.json(recipes);
+  } catch (error) {
+    console.error("Error retrieving recipes:", error);
+    res.status(500).send("Error retrieving recipes");
+  }
+});
+
+// User Routes
 
 // Register User
 app.post('/api/register', async (req, res) => {
@@ -75,33 +133,19 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// Create a Recipe (requires image upload)
-app.post('/api/recipes', upload.single('image'), async (req, res) => {
-  const { title, description } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : '';
-
-  try {
-    const newRecipe = new Recipe({ title, description, image });
-    await newRecipe.save();
-    res.status(201).json({ message: 'Recipe created successfully' });
-  } catch (error) {
-    console.error('Error creating recipe:', error);
-    res.status(500).json({ message: 'Error creating recipe' });
-  }
-});
-
-// Fetch All Recipes
-app.get('/api/recipes', async (req, res) => {
-  try {
-    const recipes = await Recipe.find();
-    res.json(recipes);
-  } catch (error) {
-    console.error('Error fetching recipes:', error);
-    res.status(500).json({ message: 'Error fetching recipes' });
-  }
-});
-
 // Start the Server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+// Optional utility function to clear all recipes from the database (for testing)
+async function clearAllRecipes() {
+  try {
+    const result = await Recipe.deleteMany({});
+    console.log(`${result.deletedCount} recipes deleted.`);
+  } catch (err) {
+    console.error("Error deleting recipes:", err);
+  }
+}
+// Uncomment the line below to clear recipes (use only for testing!)
+// clearAllRecipes();
