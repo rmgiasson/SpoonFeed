@@ -1,0 +1,162 @@
+/* Main Add Recipe Container */
+.add-recipe-container {
+  width: 100%; /* Ensure full width of parent container */
+  max-width: 800px; /* Allow more space for larger screens */
+  margin: 20px auto; /* Center it with spacing */
+  padding: 30px;
+  background: #ffffff; /* White background for a clean look */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+}
+
+/* Heading for the Add Recipe form */
+.add-recipe-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333; /* Dark gray for readability */
+  text-align: center;
+}
+
+/* Register and Login Buttons Container */
+.top-buttons {
+  display: flex;
+  justify-content: center; /* Centers buttons horizontally */
+  gap: 20px; /* Adds space between the buttons */
+  margin-bottom: 20px; /* Space below the buttons */
+}
+
+.register-button,
+.login-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.register-button {
+  background-color: #4caf50; /* Green for Register */
+  color: white;
+}
+
+.login-button {
+  background-color: #007bff; /* Blue for Login */
+  color: white;
+}
+
+.register-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.login-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Form Styles */
+.add-recipe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Adds spacing between form fields */
+}
+
+/* Form Group Styles */
+.form-group {
+  text-align: left; /* Align labels and inputs to the left */
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #555; /* Neutral gray for labels */
+}
+
+/* Input and Textarea Styles */
+input[type="text"],
+textarea {
+  width: 100%; /* Full width of container */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+textarea {
+  height: 100px; /* Fixed height for the textarea */
+  resize: none; /* Prevent resizing */
+}
+
+input[type="file"] {
+  padding: 5px;
+}
+
+/* Input Focus Effects */
+input:focus,
+textarea:focus {
+  border-color: #4caf50; /* Green border on focus */
+  outline: none;
+}
+
+/* Submit Button Styling */
+button {
+  padding: 12px 30px;
+  background-color: #4caf50; /* Primary green */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+/* Error and Success Messages */
+.error {
+  color: #e74c3c; /* Red for errors */
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.success {
+  color: #2ecc71; /* Green for success */
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* File Input Preview */
+.image-preview {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.image-preview img {
+  max-width: 100%; /* Ensure image fits container */
+  max-height: 200px; /* Limit height */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .add-recipe-container {
+    max-width: 100%; /* Full width for smaller screens */
+    padding: 20px;
+  }
+
+  button {
+    font-size: 14px; /* Adjust button size */
+    padding: 10px;
+  }
+
+  textarea {
+    height: 80px; /* Smaller height for textarea */
+  }
+}
