@@ -8,17 +8,14 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(''); // Clear any previous errors
+    setError('');
 
     try {
-      // Send login credentials to the backend
       const response = await axios.post('/api/login', { username, password });
 
       if (response.data.token) {
-        // Save the token to local storage or state (e.g., Redux) for future requests
         localStorage.setItem('token', response.data.token);
         alert('Login successful');
-        // Redirect or update the UI as needed after login
       } else {
         setError('Login failed. Please try again.');
       }
@@ -29,31 +26,60 @@ function Login() {
   };
 
   return (
-    <div className="login">
-      <h2>Login</h2>
-      {error && <p className="error">{error}</p>}
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
+      <h2 style={{ fontSize: '28px', marginBottom: '20px', color: '#2196F3' }}>Login</h2>
+      {error && (
+        <p style={{ color: 'red', fontSize: '16px', marginBottom: '10px' }}>
+          {error}
+        </p>
+      )}
       <form onSubmit={handleLogin}>
-        <div className="form-group">
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          style={{
+            display: 'block',
+            margin: '10px auto',
+            padding: '10px',
+            fontSize: '16px',
+            width: '60%',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{
+            display: 'block',
+            margin: '10px auto',
+            padding: '10px',
+            fontSize: '16px',
+            width: '60%',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#2196F3',
+            color: '#fff',
+            fontSize: '18px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Login
+        </button>
       </form>
     </div>
   );
