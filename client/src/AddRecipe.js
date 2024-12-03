@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link for routing
 import axios from 'axios';
 import './AddRecipe.css';
 
@@ -39,8 +40,9 @@ function AddRecipe({ onRecipeAdded }) {
   return (
     <div className="add-recipe-container">
       <div className="top-buttons">
-        <button className="register-button">Register</button>
-        <button className="login-button">Login</button>
+        {/* Replace buttons with Link components */}
+        <Link to="/register" className="register-button">Register</Link>
+        <Link to="/login" className="login-button">Login</Link>
       </div>
       <h2>Add Your Recipe</h2>
       {error && <p className="error">{error}</p>}
@@ -68,6 +70,18 @@ function AddRecipe({ onRecipeAdded }) {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="image">Image</label> <input type="file" id="image" onChange={(e) => setImage(e.target.files[0])} required /> </div> <button type="submit">Add Recipe</button> </form> </div> ); }
+          <label htmlFor="image">Image</label>
+          <input
+            type="file"
+            id="image"
+            onChange={(e) => setImage(e.target.files[0])}
+            required
+          />
+        </div>
+        <button type="submit">Add Recipe</button>
+      </form>
+    </div>
+  );
+}
 
 export default AddRecipe;
