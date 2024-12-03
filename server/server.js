@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const Recipe = require('./recipe'); // Recipe model
 const User = require('./user'); // User model
+const Meal = require('./meals'); // Meal model
 
 const app = express();
 const PORT = 5001;
@@ -15,7 +16,7 @@ const JWT_SECRET = 'your_jwt_secret_key_here'; // Replace with a secure key
 app.use(express.json()); // Parses incoming JSON requests
 app.use(express.urlencoded({ extended: true }));
 
-// Multer Configuration for Image Uploads (unchanged from server (2).js)
+// Multer Configuration for Image Uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, '../client/public/images');
@@ -87,7 +88,6 @@ app.get('/api/recipes', async (req, res) => {
   }
 });
 
-
 // User Routes
 
 // Register User
@@ -134,19 +134,77 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Dietary Tracking Routes
+
+// Log a Meal
+app.post('/api/meals', async (req, res) => {
+  const { mealName, calories, protein, carbs, fat } = req.body;
+  console.log("Received meal data:", req.body); // Debug log
+
+  if (!mealName || !calories || !protein || !carbs || !fat) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  try {
+    const newMeal = new Meal({
+      mealName,
+      calories,
+      protein,
+      carbs,
+      fat,
+    });
+    await newMeal.save();
+    console.log("Meal saved:", newMeal); // Debug log
+    res.status(201).json({ message: 'Meal logged successfully!', meal: newMeal });
+  } catch (error) {
+    console.error("Error logging meal:", error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+
+// Fetch Meals by Date
+app.get('/api/meals', async (req, res) => {
+  const { userId, date } = req.query;
+  const start = new Date(date);
+  const end = new Date(date);
+  end.setDate(start.getDate() + 1);
+
+  try {
+    const meals = await Meal.find({ userId, date: { $gte: start, $lt: end } });
+    res.json(meals);
+  } catch (err) {
+    console.error('Error fetching meals:', err);
+    res.status(500).json({ message: 'Error fetching meals' });
+  }
+});
+
+// Fetch Nutritional Summary
+app.get('/api/meals/summary', async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const summary = await Meal.aggregate([
+      { $match: { userId: mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          totalCalories: { $sum: '$calories' },
+          totalProtein: { $sum: '$protein' },
+          totalCarbs: { $sum: '$carbs' },
+          totalFat: { $sum: '$fat' }
+        }
+      }
+    ]);
+
+    res.json(summary[0] || { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 });
+  } catch (err) {
+    console.error('Error fetching summary:', err);
+    res.status(500).json({ message: 'Error fetching summary' });
+  }
+});
+
 // Start the Server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-// Optional utility function to clear all recipes from the database (for testing)
-async function clearAllRecipes() {
-  try {
-    const result = await Recipe.deleteMany({});
-    console.log(`${result.deletedCount} recipes deleted.`);
-  } catch (err) {
-    console.error("Error deleting recipes:", err);
-  }
-}
-// Uncomment the line below to clear recipes (use only for testing!)
-// clearAllRecipes();
