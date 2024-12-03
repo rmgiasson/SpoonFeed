@@ -15,3 +15,7 @@ to run mongodb: <br />
 mongosh <br />
 use spoonfeed; <br />
 show collections; <br />
+
+alternative if it has proper installs: <br />
+choco install make (as administrator) <br />
+make <br />
