@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link for routing
 import axios from 'axios';
 import './AddRecipe.css';
 
@@ -7,68 +8,69 @@ function AddRecipe({ onRecipeAdded }) {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!title || !description || !image) {
       setError('All fields are required!');
       return;
     }
-  
-    // Function to create a formatted file name
-    const formatFileName = (title) => {
-      return title.toLowerCase().replace(/\s+/g, '-') + '.jpg';
-    };
-  
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
-    
-    // Rename the image before appending it to FormData
-    const renamedFile = new File([image], formatFileName(title), { type: image.type });
-    formData.append('image', renamedFile);
-  
+    formData.append('image', image);
+
     try {
       await axios.post('/api/recipes', formData);
-      onRecipeAdded(); // Trigger the fetch for new recipes
+      onRecipeAdded();
       setTitle('');
       setDescription('');
       setImage(null);
       setError('');
+      setSuccess('Recipe added successfully!');
     } catch (err) {
-      console.error("Error adding recipe:", err);
-      setError("Failed to add recipe. Please try again.");
+      console.error(err);
+      setError('Failed to add the recipe. Please try again.');
     }
   };
-  
 
   return (
-    <div className="add-recipe">
+    <div className="add-recipe-container">
+      <div className="top-buttons">
+        {/* Replace buttons with Link components */}
+        <Link to="/register" className="register-button">Register</Link>
+        <Link to="/login" className="login-button">Login</Link>
+      </div>
       <h2>Add Your Recipe</h2>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
+      {success && <p className="success">{success}</p>}
+      <form onSubmit={handleSubmit} className="add-recipe-form">
         <div className="form-group">
-          <label htmlFor="title">Recipe Title:</label>
+          <label htmlFor="title">Recipe Title</label>
           <input
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter recipe title"
             required
           />
         </div>
         <div className="form-group">
-          <label htmlFor="description">Description:</label>
+          <label htmlFor="description">Description</label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder="Write a short description of your recipe"
             required
           />
         </div>
         <div className="form-group">
-          <label htmlFor="image">Image:</label>
+          <label htmlFor="image">Image</label>
           <input
             type="file"
             id="image"

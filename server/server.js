@@ -76,16 +76,17 @@ app.post('/api/recipes', upload.single('image'), async (req, res) => {
   }
 });
 
-// Fetch All Recipes
+// Fetch All Recipes (most recent first)
 app.get('/api/recipes', async (req, res) => {
   try {
-    const recipes = await Recipe.find({});
+    const recipes = await Recipe.find({}).sort({ _id: -1 });
     res.json(recipes);
   } catch (error) {
     console.error("Error retrieving recipes:", error);
     res.status(500).send("Error retrieving recipes");
   }
 });
+
 
 // User Routes
 
