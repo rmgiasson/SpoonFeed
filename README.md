@@ -10,3 +10,8 @@ to run frontend: <br />
 cd client <br />
 cd src <br />
 npm start <br />
+
+to run mongodb: <br />
+mongosh <br />
+use spoonfeed; <br />
+show collections; <br />
