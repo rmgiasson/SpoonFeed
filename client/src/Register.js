@@ -1,71 +1,55 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook
 import axios from 'axios';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError(''); // Clear any previous errors
+
     try {
       await axios.post('/api/register', { username, password });
       alert('Registration successful');
+      navigate('/'); // Redirect the user to the home page
     } catch (error) {
       console.error("Error registering user:", error);
-      alert('Registration failed');
+      setError('Registration failed. Please try again.');
     }
   };
 
   return (
-    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '20px', color: '#4CAF50' }}>Register</h2>
+    <div className="register">
+      <h2>Register</h2>
+      {error && <p className="error">{error}</p>}
       <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#4CAF50',
-            color: '#fff',
-            fontSize: '18px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Register
-        </button>
+        <div className="form-group">
+          <label htmlFor="username">Username:</label>
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Register</button>
       </form>
     </div>
   );

@@ -13,7 +13,12 @@ function RecipeDisplay() {
   const fetchRecipes = () => {
     // Fetch recipes from backend when component loads
     axios.get('/api/recipes')
-      .then(response => setRecipes(response.data))
+      .then(response => {
+        const sortedRecipes = response.data.sort((a, b) => {
+          return new Date(b._id) - new Date(a._id); // Sort by most recent
+        });
+        setRecipes(sortedRecipes);
+      })
       .catch(error => console.error("Error fetching recipes:", error));
   };
 
@@ -42,9 +47,10 @@ function RecipeDisplay() {
       <h2 className="recipe-feed-heading">Recipe Feed:</h2>
       <AddRecipe onRecipeAdded={handleRecipeAdded} /> {/* Include the new component */}
       <div className="recipe-list">
-        {recipes.map((recipe) => (
+        {recipes.map((recipe, index) => (
           <div key={recipe._id} className="recipe-card">
-            <h3>{recipe.title}</h3>
+            <h3>{`Recipe #${recipes.length - index}`}</h3> {/* Display Meal Log Number */}
+            <h4>{recipe.title}</h4>
             <p>{recipe.description}</p>
             <img
               className="recipe-image"

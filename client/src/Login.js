@@ -1,85 +1,61 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Clear any previous errors
 
     try {
-      const response = await axios.post('/api/login', { username, password });
+      // Send login credentials to the backend
+      const response = await axios.post(
+        '/api/login',
+        { username, password },
+        { withCredentials: true } // Ensure cookies are sent and received
+      );
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        alert('Login successful');
-      } else {
-        setError('Login failed. Please try again.');
+      if (response.status === 200) {
+        alert('Login successful!');
+        navigate('/'); // Redirect to the home page or another route
       }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Invalid username or password.");
+      console.error('Login error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 
   return (
-    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '20px', color: '#2196F3' }}>Login</h2>
-      {error && (
-        <p style={{ color: 'red', fontSize: '16px', marginBottom: '10px' }}>
-          {error}
-        </p>
-      )}
+    <div className="login">
+      <h2>Login</h2>
+      {error && <p className="error">{error}</p>}
       <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#2196F3',
-            color: '#fff',
-            fontSize: '18px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Login
-        </button>
+        <div className="form-group">
+          <label htmlFor="username">Username:</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Login</button>
       </form>
     </div>
   );

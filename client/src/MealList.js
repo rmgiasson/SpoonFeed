@@ -7,15 +7,19 @@ const MealList = ({ date, userId }) => {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const response = await axios.get(`/api/meals?userId=${userId}&date=${date}`);
-        setMeals(response.data);
-      } catch (err) {
-        console.error(err);
+        const response = await axios.get('/api/meals', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, // Send the token in the header
+        });
+  
+        setMeals(response.data); // Set meals specific to the user
+      } catch (error) {
+        console.error('Error fetching meals:', error);
       }
     };
-
+  
     fetchMeals();
-  }, [date, userId]);
+  }, []);
+  
 
   return (
     <div>
