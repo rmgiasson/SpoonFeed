@@ -1,98 +1,66 @@
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
 const path = require('path');
-const Recipe = require('./recipe'); // Recipe model
-const User = require('./user'); // User model
-const Meal = require('./meals'); // Meal model
+const Recipe = require('./recipe');
+const User = require('./user');
+const Meal = require('./meals');
+const authMiddleware = require('./auth');
 
 const app = express();
-const PORT = 5001;
-const JWT_SECRET = 'your_jwt_secret_key_here'; // Replace with a secure key
+const PORT = process.env.PORT || 5001;
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
 
 // Middleware
-app.use(express.json()); // Parses incoming JSON requests
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Multer Configuration for Image Uploads
+// Multer configuration for file uploads
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, '../client/public/images');
-    console.log('Resolved Path:', uploadPath); // Log the resolved directory path
     cb(null, uploadPath);
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     const timestamp = Date.now();
     const formattedTitle = req.body.title
       ? req.body.title.toLowerCase().replace(/\s+/g, '-')
       : 'untitled';
     const ext = path.extname(file.originalname);
     cb(null, `${formattedTitle}-${timestamp}${ext}`);
-  }
+  },
 });
+const upload = multer({ storage });
 
-const upload = multer({ storage: storage });
-
-// Serve static files from the "images" directory in client/public
+// Serve static files
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/spoonfeed', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(error => console.error("Could not connect to MongoDB:", error));
+mongoose
+  .connect(process.env.MONGO_URI || 'mongodb://localhost:27017/spoonfeed', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => console.error('Could not connect to MongoDB:', error));
 
-// Root route for the API
+// Root route
 app.get('/', (req, res) => {
-  res.send("Welcome to the SpoonFeed API");
+  res.send('Welcome to the SpoonFeed API');
 });
 
-// Add a New Recipe
-app.post('/api/recipes', upload.single('image'), async (req, res) => {
-  console.log('Uploaded File:', req.file); // Log the uploaded file details
-  console.log('Request Body:', req.body); // Log the request body for debugging
-
-  if (!req.file) {
-    return res.status(400).json({ message: 'File upload failed' });
-  }
-
-  const { title, description } = req.body;
-
-  try {
-    const newRecipe = new Recipe({
-      title,
-      description,
-      image: `/images/${req.file.filename}` // Save relative path for frontend access
-    });
-
-    await newRecipe.save();
-    res.status(201).json(newRecipe);
-  } catch (error) {
-    console.error('Error adding recipe:', error);
-    res.status(500).send('Error adding recipe');
-  }
-});
-
-// Fetch All Recipes (most recent first)
-app.get('/api/recipes', async (req, res) => {
-  try {
-    const recipes = await Recipe.find({}).sort({ _id: -1 });
-    res.json(recipes);
-  } catch (error) {
-    console.error("Error retrieving recipes:", error);
-    res.status(500).send("Error retrieving recipes");
-  }
-});
-
-// User Routes
-
-// Register User
+// User Registration
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -101,48 +69,91 @@ app.post('/api/register', async (req, res) => {
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error registering user:', error);
-    res.status(500).send('Error registering user');
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Login User
+// User Login
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
   try {
     const user = await User.findOne({ username });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid username or password' });
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ message: 'Login successful', token });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.cookie('authToken', token, { httpOnly: true });
+    res.status(200).json({ message: 'Login successful', user: { username: user.username } });
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Error logging in' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Fetch All Users (excluding password)
-app.get('/api/users', async (req, res) => {
+// Logout
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('authToken');
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Protected Route (for testing authentication)
+app.get('/api/protected-route', authMiddleware, (req, res) => {
+  res.json({ message: 'Authenticated', user: req.user });
+});
+
+// Add a New Recipe
+app.post('/api/recipes', upload.single('image'), async (req, res) => {
+  const { title, description } = req.body;
+
+  if (!req.file || !title || !description) {
+    return res.status(400).json({ message: 'Title, description, and image are required' });
+  }
+
   try {
-    const users = await User.find({}, '-password'); // Exclude the password field for security
-    res.json(users);
+    const newRecipe = new Recipe({
+      title,
+      description,
+      image: `/images/${req.file.filename}`,
+    });
+    await newRecipe.save();
+    res.status(201).json(newRecipe);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Error fetching users' });
+    console.error('Error adding recipe:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Dietary Tracking Routes
+// Fetch All Recipes
+app.get('/api/recipes', async (req, res) => {
+  try {
+    const recipes = await Recipe.find({}).sort({ createdAt: -1 });
+    res.json(recipes);
+  } catch (error) {
+    console.error('Error retrieving recipes:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Log a Meal
-app.post('/api/meals', async (req, res) => {
+app.post('/api/meals', authMiddleware, async (req, res) => {
   const { mealName, calories, protein, carbs, fat } = req.body;
-  console.log("Received meal data:", req.body); // Debug log
 
   if (!mealName || !calories || !protein || !carbs || !fat) {
-    return res.status(400).json({ message: 'All fields are required.' });
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
@@ -152,59 +163,30 @@ app.post('/api/meals', async (req, res) => {
       protein,
       carbs,
       fat,
+      userId: req.user.id,
     });
     await newMeal.save();
-    console.log("Meal saved:", newMeal); // Debug log
-    res.status(201).json({ message: 'Meal logged successfully!', meal: newMeal });
+    res.status(201).json(newMeal);
   } catch (error) {
-    console.error("Error logging meal:", error);
-    res.status(500).json({ message: 'Internal server error.' });
+    console.error('Error logging meal:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-
-// Fetch Meals by Date
-app.get('/api/meals', async (req, res) => {
-  const { userId, date } = req.query;
-  const start = new Date(date);
-  const end = new Date(date);
-  end.setDate(start.getDate() + 1);
-
+// Fetch Meals for Authenticated User
+router.get('/api/meals', auth, async (req, res) => {
   try {
-    const meals = await Meal.find({ userId, date: { $gte: start, $lt: end } });
+    // Fetch meals associated with the logged-in user
+    const meals = await Meal.find({ userId: req.user.id }).sort({ createdAt: -1 }); // Sort by createdAt descending
     res.json(meals);
-  } catch (err) {
-    console.error('Error fetching meals:', err);
+  } catch (error) {
+    console.error('Error fetching meals:', error);
     res.status(500).json({ message: 'Error fetching meals' });
   }
 });
 
-// Fetch Nutritional Summary
-app.get('/api/meals/summary', async (req, res) => {
-  const { userId } = req.query;
-
-  try {
-    const summary = await Meal.aggregate([
-      { $match: { userId: mongoose.Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: null,
-          totalCalories: { $sum: '$calories' },
-          totalProtein: { $sum: '$protein' },
-          totalCarbs: { $sum: '$carbs' },
-          totalFat: { $sum: '$fat' }
-        }
-      }
-    ]);
-
-    res.json(summary[0] || { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 });
-  } catch (err) {
-    console.error('Error fetching summary:', err);
-    res.status(500).json({ message: 'Error fetching summary' });
-  }
-});
 
 // Start the Server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
