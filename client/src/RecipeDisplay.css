@@ -1,20 +1,12 @@
 /* Main container for the recipe display */
-/* Add this to your CSS file */
-.recipe-container {
+.recipe-display {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px; /* Adds spacing between each recipe */
-  width: 100%;
-}
-
-.recipe-card {
-  width: 80%; /* Makes the cards stretch nicely */
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
 }
 
 /* Styling for the recipe feed heading */
@@ -26,12 +18,12 @@
   text-align: center;
 }
 
-/* AddRecipe container styling (ensures it has more space and is visually distinct) */
+/* AddRecipe container styling */
 .add-recipe-container {
-  width: 100%; /* Make it responsive */
-  max-width: 800px; /* Adjust width for larger forms */
+  width: 100%;
+  max-width: 800px;
   padding: 20px;
-  margin-bottom: 40px; /* Add spacing between the form and recipe feed */
+  margin-bottom: 40px;
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -39,25 +31,26 @@
 
 /* Recipe list styling */
 .recipe-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid layout */
-  gap: 20px; /* Spacing between recipe cards */
-  width: 100%; /* Make the grid fill the available space */
-  justify-items: center; /* Center cards in their columns */
-  padding-top: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between recipe cards */
 }
 
 /* Recipe card styling */
 .recipe-card {
-  width: 100%;
-  max-width: 400px; /* Set max width for cards */
-  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 15px;
-  background: #ffffff;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  background-color: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 90%; /* Make card smaller */
+  max-width: 400px; /* Maintain consistent width */
+  margin: 0 auto; /* Center each card */
 }
 
 /* Hover effect for recipe cards */
@@ -69,15 +62,30 @@
 /* Recipe image styling */
 .recipe-card img {
   width: 100%;
-  max-height: 250px;
+  height: auto; /* Maintain original image ratio */
+  max-height: 200px; /* Prevent overly tall images */
   object-fit: cover;
   border-radius: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+/* Recipe card text styling */
+.recipe-card h3 {
+  font-size: 1.2rem;
+  margin: 10px 0 5px;
+  color: #333;
+}
+
+.recipe-card p {
+  font-size: 1rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 /* Share button styling */
 .share-button {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: #007bff;
   color: white;
   border: none;
@@ -94,21 +102,22 @@
 /* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
   .recipe-card {
-    max-width: 100%; /* Allow cards to stretch to full width on small screens */
+    width: 100%; /* Allow cards to stretch on smaller screens */
+    max-width: 100%;
   }
 
   .add-recipe-container {
-    max-width: 100%; /* Ensure the form is responsive */
+    max-width: 100%;
   }
 }
 
 @media (max-width: 480px) {
   .recipe-feed-heading {
-    font-size: 1.5rem; /* Adjust heading size for small screens */
+    font-size: 1.5rem;
   }
 
   .share-button {
-    font-size: 12px; /* Slightly smaller button text */
+    font-size: 12px;
     padding: 8px 16px;
   }
 }
