@@ -94,46 +94,40 @@ app.post('/api/logout', (req, res) => {
 // Profile Endpoint
 app.get('/api/profile', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id, '-password'); // Fetch user details excluding password
+    const user = await User.findById(req.user.id, '-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json({
       name: user.username,
-      profile_picture: user.profilePicture || '/images/default-profile.png',
+      profile_picture: user.profilePicture,
     });
   } catch (error) {
-    console.error('Error fetching profile:', error
-    );
+    console.error('Error fetching profile:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Profile Update Endpoint
+
 app.put('/api/profile', authMiddleware, upload.single('profilePicture'), async (req, res) => {
   try {
     const updateData = {};
-
-    // Update profile picture if provided
     if (req.file) {
       updateData.profilePicture = `/images/${req.file.filename}`;
     }
-
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { $set: updateData },
-      { new: true, fields: '-password' } // Return the updated user excluding the password
+      { new: true, fields: '-password' }
     );
-
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     res.json({
       message: 'Profile updated successfully',
       user: {
         name: updatedUser.username,
-        profile_picture: updatedUser.profilePicture || '/images/default-profile.png',
+        profile_picture: updatedUser.profilePicture,
       },
     });
   } catch (error) {
@@ -165,12 +159,19 @@ app.post('/api/recipes', upload.single('image'), async (req, res) => {
 });
 
 // Fetch All Recipes
-app.get('/api/recipes', async (req, res) => {
+app.get('/api/profile', authMiddleware, async (req, res) => {
   try {
-    const recipes = await Recipe.find({}).sort({ createdAt: -1 });
-    res.json(recipes);
+    const user = await User.findById(req.user.id, '-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      name: user.username,
+      profile_picture: user.profilePicture || '/images/spoon.jpg',
+    });
   } catch (error) {
-    console.error('Error retrieving recipes:', error);
+    console.error('Error fetching profile:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

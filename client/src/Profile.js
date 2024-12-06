@@ -1,60 +1,73 @@
 import React, { useState } from 'react';
-import './App.css';
+import './Profile.css';
 
 function Profile({ user, fetchProfile }) {
-  const [isUploading, setIsUploading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [localImage, setLocalImage] = useState(null);
 
-  const handleImageUpload = async (event) => {
-    const file = event.target.files[0]; // Get the selected file
-    if (!file) return;
+    // Default image from the public/images folder
+    const defaultImage = '/images/spoon.jpg';
 
-    setIsUploading(true); // Show that the upload is in progress
-    const formData = new FormData();
-    formData.append('profilePicture', file); // Attach the file to the form data
+    // Determine the image to display
+    const profileImage = localImage || user?.profile_picture || defaultImage;
 
-    try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Send the token
-        },
-        body: formData, // Send the image
-      });
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
 
-      if (!response.ok) {
-        throw new Error('Failed to upload image'); // Handle server error
-      }
+        // Preview the uploaded image immediately
+        const previewURL = URL.createObjectURL(file);
+        setLocalImage(previewURL);
 
-      // Refetch profile to update the UI
-      fetchProfile();
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-    } finally {
-      setIsUploading(false); // Hide the uploading state
-    }
-  };
+        setIsUploading(true);
 
-  return (
-    <div className="profile">
-      <label>
-        <img
-          src={user?.profile_picture || '/images/default-profile.png'} // Display current image
-          alt="Profile"
-          className="profile-pic"
-          style={{ cursor: 'pointer' }}
-        />
-        <input
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }} // Hide the input
-          onChange={handleImageUpload} // Trigger upload on file change
-        />
-      </label>
-      <span>{user?.name || 'Guest'}</span> {/* Display username */}
-      {isUploading && <p>Uploading...</p>} {/* Show upload progress */}
-    </div>
-  );
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to upload image');
+            }
+
+            // Fetch the updated profile to reflect the new image
+            await fetchProfile();
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    return (
+        <div className="profile-container">
+            <label className="profile-picture-container">
+                <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="profile-picture"
+                    onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop
+                        e.target.src = defaultImage; // Fallback to the default image
+                    }}
+                />
+                <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleImageUpload}
+                />
+            </label>
+            {isUploading && <p className="uploading-indicator">Uploading...</p>}
+        </div>
+    );
 }
 
 export default Profile;
-

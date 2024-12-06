@@ -1,14 +1,49 @@
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-right: 20px;
-  }
-  
-  .profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
+/* Profile container */
+.profile-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+/* Profile picture container */
+.profile-picture-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 50%; /* Ensures the container is always circular */
+    background-color: #f0f0f0; /* Fallback background color */
+    border: 2px solid #ccc; /* Optional border */
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15); /* Subtle shadow */
+}
+
+/* Profile picture styling */
+.profile-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure the image scales correctly */
+    transition: transform 0.3s ease-in-out; /* Smooth hover effect */
+}
+
+/* Hover effect for profile picture */
+.profile-picture-container:hover .profile-picture {
+    transform: scale(1.1); /* Slight zoom effect */
+}
+
+/* Uploading indicator */
+.uploading-indicator {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: center;
+    margin-top: 10px;
+    animation: fade 1.5s infinite;
+}
+
+/* Fading animation for indicator */
+@keyframes fade {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
