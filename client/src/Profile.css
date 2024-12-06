@@ -4,6 +4,10 @@
     top: 10px;
     right: 10px;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: column; /* Stack dropdown below the profile */
 }
 
 /* Profile picture container */
@@ -32,6 +36,60 @@
     transform: scale(1.1); /* Slight zoom effect */
 }
 
+/* Dropdown menu */
+.profile-dropdown {
+    position: absolute;
+    top: 70px; /* Adjust dropdown below the profile */
+    right: 0;
+    background-color: #ffffff; /* White background */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    z-index: 1000;
+    text-align: center;
+    min-width: 100px;
+    opacity: 0; /* Hidden by default */
+    pointer-events: none; /* Prevent interaction when hidden */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show dropdown on hover */
+.profile-container:hover .profile-dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0); /* Bring dropdown into view */
+}
+
+/* Dropdown text */
+.profile-dropdown p {
+    margin: 0;
+    padding: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Logout button in dropdown */
+.logout-button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background-color: #e63946; /* Red background */
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #d62828; /* Darker red on hover */
+}
+
 /* Uploading indicator */
 .uploading-indicator {
     font-size: 0.8rem;
@@ -46,4 +104,3 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
-

@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
 import './Profile.css';
+import spoonImage from './spoon.jpg'; // Default image
 
 function Profile({ user, fetchProfile }) {
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [localImage, setLocalImage] = useState(null);
 
-    // Default image from the public/images folder
-    const defaultImage = '/images/spoon.jpg';
+    const handleMouseEnter = () => {
+        setIsDropdownVisible(true);
+    };
 
-    // Determine the image to display
-    const profileImage = localImage || user?.profile_picture || defaultImage;
+    const handleMouseLeave = () => {
+        setIsDropdownVisible(false);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token'); // Remove token
+        window.location.href = '/login'; // Redirect to login page
+    };
 
     const handleImageUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
-        // Preview the uploaded image immediately
-        const previewURL = URL.createObjectURL(file);
-        setLocalImage(previewURL);
 
         setIsUploading(true);
 
@@ -37,7 +41,7 @@ function Profile({ user, fetchProfile }) {
                 throw new Error('Failed to upload image');
             }
 
-            // Fetch the updated profile to reflect the new image
+            // Fetch updated profile
             await fetchProfile();
         } catch (error) {
             console.error('Error uploading profile picture:', error);
@@ -46,25 +50,35 @@ function Profile({ user, fetchProfile }) {
         }
     };
 
+    const profileImage = user?.profile_picture || spoonImage;
+
     return (
-        <div className="profile-container">
+        <div
+            className="profile-container"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
             <label className="profile-picture-container">
                 <img
                     src={profileImage}
                     alt="Profile"
                     className="profile-picture"
-                    onError={(e) => {
-                        e.target.onerror = null; // Prevent infinite loop
-                        e.target.src = defaultImage; // Fallback to the default image
-                    }}
                 />
                 <input
                     type="file"
                     accept="image/*"
                     style={{ display: 'none' }}
-                    onChange={handleImageUpload}
+                    onChange={handleImageUpload} // Handle profile picture upload
                 />
             </label>
+            {isDropdownVisible && (
+                <div className="profile-dropdown">
+                    <p>{user?.name || 'Guest'}</p>
+                    <button onClick={handleLogout} className="logout-button">
+                        Logout
+                    </button>
+                </div>
+            )}
             {isUploading && <p className="uploading-indicator">Uploading...</p>}
         </div>
     );
