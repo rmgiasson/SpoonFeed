@@ -9,7 +9,7 @@ const path = require('path');
 const Recipe = require('./recipe');
 const User = require('./user');
 const Meal = require('./meals');
-const authMiddleware = require('./auth');
+const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -54,25 +54,6 @@ app.get('/', (req, res) => {
   res.send('Welcome to the SpoonFeed API');
 });
 
-// User Registration
-app.post('/api/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword });
-    await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 // User Login
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -97,7 +78,7 @@ app.post('/api/login', async (req, res) => {
     });
 
     res.cookie('authToken', token, { httpOnly: true });
-    res.status(200).json({ message: 'Login successful', user: { username: user.username } });
+    res.status(200).json({ message: 'Login successful', user: { username: user.username }, token });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -110,9 +91,55 @@ app.post('/api/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
-// Protected Route (for testing authentication)
-app.get('/api/protected-route', authMiddleware, (req, res) => {
-  res.json({ message: 'Authenticated', user: req.user });
+// Profile Endpoint
+app.get('/api/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id, '-password'); // Fetch user details excluding password
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({
+      name: user.username,
+      profile_picture: user.profilePicture || '/images/default-profile.png',
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error
+    );
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Profile Update Endpoint
+app.put('/api/profile', authMiddleware, upload.single('profilePicture'), async (req, res) => {
+  try {
+    const updateData = {};
+
+    // Update profile picture if provided
+    if (req.file) {
+      updateData.profilePicture = `/images/${req.file.filename}`;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updateData },
+      { new: true, fields: '-password' } // Return the updated user excluding the password
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        name: updatedUser.username,
+        profile_picture: updatedUser.profilePicture || '/images/default-profile.png',
+      },
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // Add a New Recipe
@@ -174,17 +201,15 @@ app.post('/api/meals', authMiddleware, async (req, res) => {
 });
 
 // Fetch Meals for Authenticated User
-router.get('/api/meals', auth, async (req, res) => {
+app.get('/api/meals', authMiddleware, async (req, res) => {
   try {
-    // Fetch meals associated with the logged-in user
-    const meals = await Meal.find({ userId: req.user.id }).sort({ createdAt: -1 }); // Sort by createdAt descending
+    const meals = await Meal.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(meals);
   } catch (error) {
     console.error('Error fetching meals:', error);
     res.status(500).json({ message: 'Error fetching meals' });
   }
 });
-
 
 // Start the Server
 app.listen(PORT, () => {

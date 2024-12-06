@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Meal = require('./Meal'); // Replace with the actual path to your Meal model
-const auth = require('./auth'); // Middleware for authentication
+const auth = require('./middleware/auth'); // Middleware for authentication
 
 // Route to log a meal (POST /api/meals)
 router.post('/api/meals', auth, async (req, res) => {
