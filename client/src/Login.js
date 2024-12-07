@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './Login.css'; // Import the new CSS file
 
 function Login({ fetchProfile }) {
   const [username, setUsername] = useState('');
@@ -10,10 +11,10 @@ function Login({ fetchProfile }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-  
+
     try {
       const response = await axios.post('/api/login', { username, password });
-  
+
       if (response.data.token) {
         localStorage.setItem('token', response.data.token); // Save the token
         fetchProfile(); // Fetch the profile after login
@@ -25,16 +26,12 @@ function Login({ fetchProfile }) {
       console.error('Login error:', err);
       setError('Invalid username or password.');
     }
-  };  
+  };
 
   return (
-    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '20px', color: '#2196F3' }}>Login</h2>
-      {error && (
-        <p style={{ color: 'red', fontSize: '16px', marginBottom: '10px' }}>
-          {error}
-        </p>
-      )}
+    <div className="login-container">
+      <h2 className="login-title">Login</h2>
+      {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleLogin}>
         <input
           type="text"
@@ -42,15 +39,7 @@ function Login({ fetchProfile }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
+          className="input-field"
         />
         <input
           type="password"
@@ -58,30 +47,9 @@ function Login({ fetchProfile }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            display: 'block',
-            margin: '10px auto',
-            padding: '10px',
-            fontSize: '16px',
-            width: '60%',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-          }}
+          className="input-field"
         />
-        <button
-          type="submit"
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#2196F3',
-            color: '#fff',
-            fontSize: '18px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Login
-        </button>
+        <button type="submit" className="submit-button">Login</button>
       </form>
     </div>
   );
