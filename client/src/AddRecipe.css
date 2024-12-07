@@ -82,15 +82,18 @@ textarea {
   border-radius: 5px;
   font-size: 14px;
   transition: border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
 textarea {
   height: 100px; /* Fixed height for the textarea */
   resize: none; /* Prevent resizing */
+  box-sizing: border-box;
 }
 
 input[type="file"] {
   padding: 5px;
+  box-sizing: border-box;
 }
 
 /* Input Focus Effects */
