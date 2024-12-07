@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook
 import axios from 'axios';
+import './Register.css';
 
 function Register() {
   const [username, setUsername] = useState('');
