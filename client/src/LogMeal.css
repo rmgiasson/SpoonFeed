@@ -36,6 +36,7 @@
   font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 5px;
+  box-sizing: border-box;
 }
 
 .log-meal-button {
