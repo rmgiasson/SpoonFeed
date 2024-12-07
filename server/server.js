@@ -8,8 +8,8 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const Recipe = require('./recipe');
 const User = require('./user');
-const Meal = require('./meals');
-const authMiddleware = require('./middleware/auth');
+const Meal = require('./Meal');
+const auth = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -54,6 +54,25 @@ app.get('/', (req, res) => {
   res.send('Welcome to the SpoonFeed API');
 });
 
+// User Registration
+app.post('/api/register', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, password: hashedPassword });
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // User Login
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -78,7 +97,7 @@ app.post('/api/login', async (req, res) => {
     });
 
     res.cookie('authToken', token, { httpOnly: true });
-    res.status(200).json({ message: 'Login successful', user: { username: user.username }, token });
+    res.status(200).json({ message: 'Login successful', user: { username: user.username } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -91,49 +110,9 @@ app.post('/api/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
-// Profile Endpoint
-app.get('/api/profile', authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id, '-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({
-      name: user.username,
-      profile_picture: user.profilePicture,
-    });
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-
-app.put('/api/profile', authMiddleware, upload.single('profilePicture'), async (req, res) => {
-  try {
-    const updateData = {};
-    if (req.file) {
-      updateData.profilePicture = `/images/${req.file.filename}`;
-    }
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: updateData },
-      { new: true, fields: '-password' }
-    );
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({
-      message: 'Profile updated successfully',
-      user: {
-        name: updatedUser.username,
-        profile_picture: updatedUser.profilePicture,
-      },
-    });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+// Protected Route (for testing authentication)
+app.get('/api/protected-route', auth, (req, res) => {
+  res.json({ message: 'Authenticated', user: req.user });
 });
 
 // Add a New Recipe
@@ -159,25 +138,18 @@ app.post('/api/recipes', upload.single('image'), async (req, res) => {
 });
 
 // Fetch All Recipes
-app.get('/api/profile', authMiddleware, async (req, res) => {
+app.get('/api/recipes', async (req, res) => {
   try {
-    const user = await User.findById(req.user.id, '-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({
-      name: user.username,
-      profile_picture: user.profilePicture || '/images/spoon.jpg',
-    });
+    const recipes = await Recipe.find({}).sort({ createdAt: -1 });
+    res.json(recipes);
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error('Error retrieving recipes:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 // Log a Meal
-app.post('/api/meals', authMiddleware, async (req, res) => {
+app.post('/api/meals', auth, async (req, res) => {
   const { mealName, calories, protein, carbs, fat } = req.body;
 
   if (!mealName || !calories || !protein || !carbs || !fat) {
@@ -202,9 +174,9 @@ app.post('/api/meals', authMiddleware, async (req, res) => {
 });
 
 // Fetch Meals for Authenticated User
-app.get('/api/meals', authMiddleware, async (req, res) => {
+app.get('/api/meals', auth, async (req, res) => {
   try {
-    const meals = await Meal.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const meals = await Meal.find({ userId: req.user.id }).sort({ createdAt: 1 }); // Ascending order
     res.json(meals);
   } catch (error) {
     console.error('Error fetching meals:', error);

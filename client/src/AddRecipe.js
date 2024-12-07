@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for routing
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './AddRecipe.css';
 
@@ -25,14 +25,14 @@ function AddRecipe({ onRecipeAdded }) {
 
     try {
       await axios.post('/api/recipes', formData);
-      onRecipeAdded();
+      onRecipeAdded(); // Notify parent component to refresh recipes
       setTitle('');
       setDescription('');
       setImage(null);
       setError('');
       setSuccess('Recipe added successfully!');
     } catch (err) {
-      console.error(err);
+      console.error('Error adding recipe:', err);
       setError('Failed to add the recipe. Please try again.');
     }
   };
@@ -40,7 +40,6 @@ function AddRecipe({ onRecipeAdded }) {
   return (
     <div className="add-recipe-container">
       <div className="top-buttons">
-        {/* Replace buttons with Link components */}
         <Link to="/register" className="register-button">Register</Link>
         <Link to="/login" className="login-button">Login</Link>
       </div>

@@ -25,29 +25,98 @@
 
 /* Profile styling for the top-right display */
 .profile {
-  display: flex;
-  align-items: center; /* Vertically align items */
-  justify-content: flex-end; /* Push profile to the right */
-  position: absolute; /* Position profile in the header */
+  position: absolute;
   top: 20px;
   right: 20px;
-  gap: 10px; /* Space between image and name */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Vertically align items */
+  justify-content: flex-end; /* Push profile to the right */
+  z-index: 1000;
 }
 
-.profile-pic {
-  width: 40px;
-  height: 40px;
+/* Profile picture container */
+.profile-picture-container {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  overflow: hidden;
   border-radius: 50%; /* Circular profile picture */
+  background-color: #f0f0f0; /* Fallback background color */
+  border: 2px solid #ccc; /* Optional border */
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15); /* Subtle shadow */
+}
+
+/* Profile picture styling */
+.profile-picture {
+  width: 100%;
+  height: 100%;
   object-fit: cover; /* Maintain aspect ratio */
+  transition: transform 0.3s ease-in-out; /* Smooth hover effect */
 }
 
-.profile span {
-  font-size: 1rem;
+/* Hover effect for profile picture */
+.profile-picture-container:hover .profile-picture {
+  transform: scale(1.1); /* Slight zoom effect */
+}
+
+/* Dropdown menu */
+.profile-dropdown {
+  position: absolute;
+  top: 60px; /* Adjust dropdown below the profile */
+  right: 0;
+  background-color: #ffffff; /* White background */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 1000;
+  text-align: center;
+  min-width: 120px;
+  opacity: 0; /* Hidden by default */
+  pointer-events: none; /* Prevent interaction when hidden */
+  transform: translateY(-10px); /* Positioned slightly above */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show dropdown on hover */
+.profile:hover .profile-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0); /* Bring dropdown into view */
+}
+
+/* Dropdown text */
+.profile-dropdown p {
+  margin: 0;
+  padding: 5px;
+  font-size: 0.9rem;
   font-weight: bold;
-  color: #333; /* Dark text color */
+  color: #333;
 }
 
-/* Link styling for any additional links */
+/* Logout button in dropdown */
+.logout-button {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+  background-color: #e63946; /* Red background */
+  color: white;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #d62828; /* Darker red on hover */
+}
+
+/* Link styling for navigation buttons */
 .App-link {
   color: #007bff;
   text-decoration: none;
@@ -57,25 +126,8 @@
   color: #0056b3;
 }
 
-/* Button styling for log-meal */
-.log-meal-button {
-  display: inline-block;
-  background-color: #cc00ff; /* Purple background */
-  color: white; /* White text */
-  padding: 10px 20px; /* Add padding */
-  text-decoration: none; /* Remove underline */
-  font-weight: bold; /* Make the text bold */
-  border-radius: 5px; /* Add rounded corners */
-  margin: 0 5px; /* Add space between buttons */
-  text-align: center; /* Center the text */
-}
-
-.log-meal-button:hover {
-  background-color: #0056b3; /* Darker purple on hover */
-  cursor: pointer; /* Pointer cursor on hover */
-}
-
-/* Button styling for home */
+/* Button styling for log-meal or home */
+.log-meal-button,
 .home-button {
   display: inline-block;
   background-color: #cc00ff; /* Purple background */
@@ -86,10 +138,12 @@
   border-radius: 5px; /* Add rounded corners */
   margin: 0 5px; /* Add space between buttons */
   text-align: center; /* Center the text */
+  transition: background-color 0.3s ease;
 }
 
+.log-meal-button:hover,
 .home-button:hover {
-  background-color: #0056b3; /* Darker purple on hover */
+  background-color: #9900cc; /* Darker purple on hover */
   cursor: pointer; /* Pointer cursor on hover */
 }
 
@@ -174,21 +228,13 @@
   }
 
   .profile {
-    top: 10px; /* Adjust for smaller screens */
+    top: 10px;
     right: 10px;
   }
 
-  .profile-pic {
-    width: 35px;
-    height: 35px; /* Adjust size for smaller screens */
-  }
-
-  .profile span {
-    font-size: 0.9rem;
-  }
-
-  .profile-form {
-    width: 100%; /* Full width for smaller screens */
+  .profile-picture {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -201,12 +247,9 @@
     padding: 5px;
   }
 
-  .profile-pic {
-    width: 30px;
-    height: 30px; /* Further reduce size for very small screens */
-  }
-
-  .profile span {
-    font-size: 0.8rem;
+  .profile-picture {
+    width: 35px;
+    height: 35px;
   }
 }
+

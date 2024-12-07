@@ -1,12 +1,15 @@
-const mongoose = require('mongoose'); // Import mongoose
+const mongoose = require('mongoose');
 
 const recipeSchema = new mongoose.Schema(
   {
-    title: String,
-    description: String,
-    image: String, // URL for the recipe image
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    image: { type: String, required: true }, // Path to uploaded image
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt fields
+  { timestamps: true }
 );
 
-module.exports = mongoose.model('Recipe', recipeSchema);
+const Recipe = mongoose.model('Recipe', recipeSchema);
+
+module.exports = Recipe;
+

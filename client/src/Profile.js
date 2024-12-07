@@ -5,6 +5,7 @@ import spoonImage from './spoon.jpg'; // Default image
 function Profile({ user, fetchProfile }) {
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [showLogoutMessage, setShowLogoutMessage] = useState(false);
 
     const handleMouseEnter = () => {
         setIsDropdownVisible(true);
@@ -16,7 +17,11 @@ function Profile({ user, fetchProfile }) {
 
     const handleLogout = () => {
         localStorage.removeItem('token'); // Remove token
-        window.location.href = '/login'; // Redirect to login page
+        setShowLogoutMessage(true); // Show the logout success message
+        setTimeout(() => {
+            setShowLogoutMessage(false); // Hide the message after 3 seconds
+            window.location.href = '/login'; // Redirect to login page
+        }, 3000);
     };
 
     const handleImageUpload = async (event) => {
@@ -80,6 +85,9 @@ function Profile({ user, fetchProfile }) {
                 </div>
             )}
             {isUploading && <p className="uploading-indicator">Uploading...</p>}
+            {showLogoutMessage && (
+                <div className="logout-message">Logout successful!</div>
+            )}
         </div>
     );
 }
