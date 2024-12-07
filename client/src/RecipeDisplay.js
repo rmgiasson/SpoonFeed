@@ -50,6 +50,13 @@ function RecipeDisplay() {
         {recipes.map((recipe, index) => (
           <div key={recipe._id} className="recipe-card">
             <h3>{`Recipe #${recipes.length - index}`}</h3>
+            <hr
+              style={{
+                border: ".5px solid black",
+                width: "100%", 
+                margin: "10px 0", 
+              }}
+            />
             <h4>{recipe.title}</h4>
             <p>{recipe.description}</p>
             <img
